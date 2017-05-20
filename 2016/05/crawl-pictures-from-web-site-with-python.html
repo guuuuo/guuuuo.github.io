@@ -1,0 +1,165 @@
+
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <title>使用 Python 抓取特定网页上的图片 | Niko&#39;s Notes</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+  
+  <meta name="author" content="Niko.G">
+  
+    
+  
+  <link rel="icon" href="/favicon.ico">
+  
+  
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+  
+</head>
+<body>
+  <div id="container">
+      <div id="main" role="main">
+        <header>
+          <h1>使用 Python 抓取特定网页上的图片</h1>
+        </header>
+
+        <nav>
+          
+            <span><a title="home page" class="" href="/">Home</a></span>
+          
+            <span><a title="home page" class="" href="/about">About</a></span>
+          
+            <span><a title="home page" class="" href="/categories">Categories</a></span>
+          
+            <span><a title="home page" class="" href="/tags">Tags</a></span>
+          
+        </nav>
+
+        <article class="content">
+            <section class="post">
+  <h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><p>Python 3.5</p>
+<h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#coding=utf-8</span></div><div class="line"><span class="keyword">import</span> urllib.request</div><div class="line"><span class="keyword">import</span> re</div><div class="line"><span class="keyword">import</span> urllib,re,sys,os</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">mkdir</span><span class="params">(path)</span>:</span></div><div class="line">    <span class="keyword">try</span>:</div><div class="line">        os.makedirs(path)</div><div class="line">    <span class="keyword">except</span> OSError <span class="keyword">as</span> exc:  <span class="comment"># Python &gt;2.5</span></div><div class="line">        <span class="keyword">if</span> exc.errno == errno.EEXIST <span class="keyword">and</span> os.path.isdir(path):</div><div class="line">            <span class="keyword">pass</span></div><div class="line">        <span class="keyword">else</span>:</div><div class="line">            <span class="keyword">raise</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">getHtml</span><span class="params">(url)</span>:</span></div><div class="line">    html = urllib.request.urlopen(url).read()</div><div class="line">    <span class="keyword">if</span> html == <span class="string">'null'</span>:</div><div class="line">            print( <span class="string">'open &amp; read html error!'</span>)</div><div class="line">            sys.exit(<span class="number">-1</span>)</div><div class="line">    html=html.decode(<span class="string">'utf-8'</span>)</div><div class="line">    <span class="keyword">return</span> html</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">getImg</span><span class="params">(html)</span>:</span></div><div class="line">    reg = <span class="string">r'img(.+?)src="(.+?)"'</span></div><div class="line">    imgre = re.compile(reg)  </div><div class="line">    imglist = imgre.findall(html)</div><div class="line">    <span class="keyword">for</span> imgurls <span class="keyword">in</span> imglist:</div><div class="line">        imgurl=imgurls[<span class="number">1</span>]</div><div class="line">        print(imgurl)</div><div class="line">        <span class="keyword">if</span> (imgurl.index(<span class="string">'/'</span>) == <span class="number">0</span>):</div><div class="line">            <span class="keyword">continue</span></div><div class="line">        imgpath = imgurl[<span class="number">36</span>:imgurl.rindex(<span class="string">'/'</span>)]</div><div class="line">        imgname = imgurl[imgurl.rindex(<span class="string">'/'</span>) + <span class="number">1</span>:]</div><div class="line">        fullimgpath = <span class="string">'ehim_images/'</span> + imgpath</div><div class="line">        <span class="keyword">if</span> (os.path.exists(fullimgpath)== <span class="keyword">False</span>):</div><div class="line">            mkdir(fullimgpath)</div><div class="line">        urllib.request.urlretrieve(imgurl, fullimgpath + <span class="string">'/'</span> + imgname)</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__==<span class="string">"__main__"</span>:</div><div class="line">    urls = []</div><div class="line">    <span class="keyword">with</span> open(<span class="string">"urls.txt"</span>, <span class="string">"r"</span>, encoding=<span class="string">'utf-8'</span>) <span class="keyword">as</span> f:</div><div class="line">        <span class="keyword">for</span> line <span class="keyword">in</span> f.readlines():</div><div class="line">            urls.append(line.strip())</div><div class="line">    <span class="keyword">for</span> url <span class="keyword">in</span> urls:</div><div class="line">        print(url)</div><div class="line">        html=getHtml(url)</div><div class="line">        getImg(html)</div></pre></td></tr></table></figure>
+
+</section>
+<section class="meta">
+  <span class="author">
+    <a href="/about" title="Niko.G">Niko.G</a>
+  </span>
+  <span class="time">
+    /
+    <time datetime="2016-05-24T10:24:20.000Z" itemprop="datePublished">2016-05-24</time>
+  </span>
+  <br>
+  <span class="license">
+    Published under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">(CC) BY-NC-SA</a>
+  </span>
+  
+    <span class="categories">
+      in categories 
+       
+        <a data-src="/categories/技术文摘/" href="#技术文摘" title="技术文摘">技术文摘</a>
+      
+    </span>
+  
+  
+    <span class="tags">
+      tagged with
+       
+        <a data-src="/tags/python/" href="#python" title="python">python</a>
+       
+        <a data-src="/tags/crawl/" href="#crawl" title="crawl">crawl</a>
+      
+    </span>
+  
+</section>
+<section class="google_adsense">
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- www.v2code.com -->
+    <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-1813429521156142"
+        data-ad-slot="1240867488"
+        data-ad-format="auto"></ins>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</section>
+<section class="comment">
+<div id="disqus_thread"></div>
+<script>
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = 'https://www.v2code.com/2016/05/crawl-pictures-from-web-site-with-python.html';  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = '/2016/05/crawl-pictures-from-web-site-with-python.html'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://nikos-notes.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+        </article>
+
+        
+          
+            <script src="/js/jquery-1.7.1.min.js"></script>
+          
+            <script src="/js/main.js"></script>
+          
+        
+      </div>      
+  </div>
+
+<div id="message"><a href="#top">Scroll to top</a></div>
+<script type="text/javascript">
+$(function () {
+
+    /* set variables locally for increased performance */
+    var scroll_timer;
+    var displayed = false;
+    var $message = $('#message a');
+    var $window = $(window);
+    var top = $(document.body).children(0).position().top;
+
+    /* react to scroll event on window */
+    $window.scroll(function () {
+        window.clearTimeout(scroll_timer);
+        scroll_timer = window.setTimeout(function () {
+            if($window.scrollTop() <= top + 800)
+            {
+                displayed = false;
+                $message.fadeOut(1000);
+            }
+            else if(displayed == false)
+            {
+                displayed = true;
+                $message.stop(true, true).show().click(function () { $message.fadeOut(1000); });
+            }
+        }, 100);
+    });
+});
+</script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-96913368-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+</body>
+</html>

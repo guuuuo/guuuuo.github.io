@@ -1,0 +1,192 @@
+
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <title>Luci 远程访问 | Niko&#39;s Notes</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+  
+  <meta name="author" content="Niko.G">
+  
+    
+  
+  <link rel="icon" href="/favicon.ico">
+  
+  
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+  
+</head>
+<body>
+  <div id="container">
+      <div id="main" role="main">
+        <header>
+          <h1>Luci 远程访问</h1>
+        </header>
+
+        <nav>
+          
+            <span><a title="home page" class="" href="/">Home</a></span>
+          
+            <span><a title="home page" class="" href="/about">About</a></span>
+          
+            <span><a title="home page" class="" href="/categories">Categories</a></span>
+          
+            <span><a title="home page" class="" href="/tags">Tags</a></span>
+          
+        </nav>
+
+        <article class="content">
+            <section class="post">
+  <h3 id="开启-Luci-远程访问"><a href="#开启-Luci-远程访问" class="headerlink" title="开启 Luci 远程访问"></a>开启 Luci 远程访问</h3><ol>
+<li><p>防火墙开放80端口</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">iptables -A INPUT -p tcp --dport 80 -j ACCEPT</div></pre></td></tr></table></figure>
+</li>
+<li><p>修改 <code>/etc/config/uhttpd</code>，将</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">option rfc1918_filter &apos;1&apos;</div></pre></td></tr></table></figure>
+<p>改为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">option rfc1918_filter &apos;0&apos;</div></pre></td></tr></table></figure>
+</li>
+<li><p>重启uhttpd</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/etc/init.d/uhttpd restart</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>即可通过公网IP来访问Luci。</p>
+<h3 id="通过域名访问"><a href="#通过域名访问" class="headerlink" title="通过域名访问"></a>通过域名访问</h3><p>如果域名使用的是Dnspod，或者有类似提供api的DNS服务商，那可以自己实现DDNS，实现通过域名访问LuCI.</p>
+<ol>
+<li><p>获取domain_id</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">curl curl -k https://dnsapi.cn/Domain.List -d &quot;login_email=xxx&amp;login_password=xxx&quot;</div></pre></td></tr></table></figure>
+</li>
+<li><p>获取record_id</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">curl -k https://dnsapi.cn/Record.List -d &quot;login_email=xxx&amp;login_password=xxx&amp;domain_id=xxx&quot;</div></pre></td></tr></table></figure>
+</li>
+<li><p>添加如下脚本至 <code>/usr/bin/pypod.py</code>（<a href="https://gist.github.com/chuangbo/833369" target="_blank" rel="external">参考这里</a>）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line">#!/usr/bin/env python</div><div class="line">#-*- coding:utf-8 -*-</div><div class="line"></div><div class="line">import httplib, urllib</div><div class="line">import socket</div><div class="line">import time</div><div class="line">import ssl</div><div class="line"></div><div class="line">params = dict(</div><div class="line">    login_email=&quot;email&quot;, # replace with your email</div><div class="line">    login_password=&quot;password&quot;, # replace with your password</div><div class="line">    format=&quot;json&quot;,</div><div class="line">    domain_id=100, # replace with your domain_od, can get it by API Domain.List</div><div class="line">    record_id=100, # replace with your record_id, can get it by API Record.List</div><div class="line">    sub_domain=&quot;www&quot;, # replace with your sub_domain</div><div class="line">    record_line=&quot;默认&quot;,</div><div class="line">)</div><div class="line">current_ip = None</div><div class="line"></div><div class="line">def ddns(ip):</div><div class="line">    params.update(dict(value=ip))</div><div class="line">    headers = &#123;&quot;Content-type&quot;: &quot;application/x-www-form-urlencoded&quot;, &quot;Accept&quot;: &quot;text/json&quot;&#125;</div><div class="line">    conn = httplib.HTTPSConnection(&quot;dnsapi.cn&quot;)</div><div class="line">    conn.request(&quot;POST&quot;, &quot;/Record.Ddns&quot;, urllib.urlencode(params), headers)</div><div class="line"></div><div class="line">    response = conn.getresponse()</div><div class="line">    print response.status, response.reason</div><div class="line">    data = response.read()</div><div class="line">    print data</div><div class="line">    conn.close()</div><div class="line">    return response.status == 200</div><div class="line"></div><div class="line">def getip():</div><div class="line">    sock = socket.create_connection((&apos;ns1.dnspod.net&apos;, 6666))</div><div class="line">    ip = sock.recv(16)</div><div class="line">    sock.close()</div><div class="line">    return ip</div><div class="line"></div><div class="line">if __name__ == &apos;__main__&apos;:</div><div class="line">    try:</div><div class="line">        if hasattr(ssl, &apos;_create_unverified_context&apos;):</div><div class="line">            ssl._create_default_https_context = ssl._create_unverified_context    </div><div class="line">        ip = getip()</div><div class="line">        print ip</div><div class="line">        if current_ip != ip:</div><div class="line">            if ddns(ip):</div><div class="line">                current_ip = ip</div><div class="line">    except Exception, e:</div><div class="line">        print e</div><div class="line">        pass</div></pre></td></tr></table></figure>
+</li>
+<li><p>添加定时任务，每30分钟更新一次</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">*/30 * * * * echo &quot;$(date): update ddns.&quot;&gt;&gt;/tmp/log/ddns-update.log &amp;&amp; python /usr/bin/pypod.py &gt;&gt; /tmp/log/ddns-update.log</div></pre></td></tr></table></figure>
+</li>
+</ol>
+
+</section>
+<section class="meta">
+  <span class="author">
+    <a href="/about" title="Niko.G">Niko.G</a>
+  </span>
+  <span class="time">
+    /
+    <time datetime="2015-11-23T13:56:25.000Z" itemprop="datePublished">2015-11-23</time>
+  </span>
+  <br>
+  <span class="license">
+    Published under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">(CC) BY-NC-SA</a>
+  </span>
+  
+    <span class="categories">
+      in categories 
+       
+        <a data-src="/categories/技术文摘/" href="#技术文摘" title="技术文摘">技术文摘</a>
+      
+    </span>
+  
+  
+    <span class="tags">
+      tagged with
+       
+        <a data-src="/tags/wndr4300/" href="#wndr4300" title="wndr4300">wndr4300</a>
+       
+        <a data-src="/tags/openwrt/" href="#openwrt" title="openwrt">openwrt</a>
+      
+    </span>
+  
+</section>
+<section class="google_adsense">
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- www.v2code.com -->
+    <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-1813429521156142"
+        data-ad-slot="1240867488"
+        data-ad-format="auto"></ins>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</section>
+<section class="comment">
+<div id="disqus_thread"></div>
+<script>
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = 'https://www.v2code.com/2015/11/luci-external-access.html';  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = '/2015/11/luci-external-access.html'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://nikos-notes.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+        </article>
+
+        
+          
+            <script src="/js/jquery-1.7.1.min.js"></script>
+          
+            <script src="/js/main.js"></script>
+          
+        
+      </div>      
+  </div>
+
+<div id="message"><a href="#top">Scroll to top</a></div>
+<script type="text/javascript">
+$(function () {
+
+    /* set variables locally for increased performance */
+    var scroll_timer;
+    var displayed = false;
+    var $message = $('#message a');
+    var $window = $(window);
+    var top = $(document.body).children(0).position().top;
+
+    /* react to scroll event on window */
+    $window.scroll(function () {
+        window.clearTimeout(scroll_timer);
+        scroll_timer = window.setTimeout(function () {
+            if($window.scrollTop() <= top + 800)
+            {
+                displayed = false;
+                $message.fadeOut(1000);
+            }
+            else if(displayed == false)
+            {
+                displayed = true;
+                $message.stop(true, true).show().click(function () { $message.fadeOut(1000); });
+            }
+        }, 100);
+    });
+});
+</script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-96913368-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+</body>
+</html>

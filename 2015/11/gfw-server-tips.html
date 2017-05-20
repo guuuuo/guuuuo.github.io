@@ -1,0 +1,255 @@
+
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <title>蕃茄服务器搭建小记 | Niko&#39;s Notes</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+  
+  <meta name="author" content="Niko.G">
+  
+    
+  
+  <link rel="icon" href="/favicon.ico">
+  
+  
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+  
+</head>
+<body>
+  <div id="container">
+      <div id="main" role="main">
+        <header>
+          <h1>蕃茄服务器搭建小记</h1>
+        </header>
+
+        <nav>
+          
+            <span><a title="home page" class="" href="/">Home</a></span>
+          
+            <span><a title="home page" class="" href="/about">About</a></span>
+          
+            <span><a title="home page" class="" href="/categories">Categories</a></span>
+          
+            <span><a title="home page" class="" href="/tags">Tags</a></span>
+          
+        </nav>
+
+        <article class="content">
+            <section class="post">
+  <h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><ul>
+<li>服务器：<a href="https://bandwagonhost.com/aff.php?aff=2285" target="_blank" rel="external">搬瓦工 年付 $10, 512MB RAM, 5GB SSD Disk</a></li>
+<li>操作系统：Centos 6 x86_64 devel</li>
+</ul>
+<h2 id="安装与配置-Shadosocks"><a href="#安装与配置-Shadosocks" class="headerlink" title="安装与配置 Shadosocks"></a>安装与配置 Shadosocks</h2><ol>
+<li>直接在 KiwiVM 控制面板中安装：KiwiVM Extras -&gt; Shadowsocks Server，安装完成后，即可在控制面板看到加密方式、密码、端口等相关信息。</li>
+<li>如果需要<strong>手动指定</strong>，可编辑/root/目录下的这些文件：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">-rw-r--r--  1 root root    8 Dec 13 21:36 .kiwivm-shadowsocks-encryption</div><div class="line">-rw-r--r--  1 root root   11 Dec 13 02:30 .kiwivm-shadowsocks-password</div><div class="line">-rw-r--r--  1 root root    5 Dec 13 02:21 .kiwivm-shadowsocks-port</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="安装-net-speeder-加速-Shadowsocks"><a href="#安装-net-speeder-加速-Shadowsocks" class="headerlink" title="安装 net-speeder 加速 Shadowsocks"></a>安装 net-speeder 加速 Shadowsocks</h2><ol>
+<li><p>进入工作目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mkdir ~/net-speeder &amp;&amp; cd ~/net-speeder</div></pre></td></tr></table></figure>
+</li>
+<li><p>下载</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">wget --no-check-certificate https://gist.github.com/LazyZhu/dc3f2f84c336a08fd6a5/raw/d8aa4bcf955409e28a262ccf52921a65fe49da99/net_speeder_lazyinstall.sh</div></pre></td></tr></table></figure>
+</li>
+<li><p>安装</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sh net_speeder_lazyinstall.sh</div></pre></td></tr></table></figure>
+</li>
+<li><p>启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">nohup /usr/local/net_speeder/net_speeder venet0 &quot;&#123;vps.ip&#125;&quot; &gt;/dev/null 2&gt;&amp;1 &amp;</div></pre></td></tr></table></figure>
+</li>
+<li><p>开机启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">echo &apos;nohup /usr/local/net_speeder/net_speeder venet0 &quot;&#123;vps.ip&#125;&quot; &gt;/dev/null 2&gt;&amp;1 &amp;&apos; &gt;&gt; /etc/rc.local</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="安装-pdnsd-供-openwrt-路由使用"><a href="#安装-pdnsd-供-openwrt-路由使用" class="headerlink" title="安装 pdnsd 供 openwrt 路由使用"></a>安装 pdnsd 供 openwrt 路由使用</h2><ol>
+<li><p>进入工作目录</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mkdir ~/pdnsd &amp;&amp; cd ~/pdnsd</div></pre></td></tr></table></figure>
+</li>
+<li><p>到官方 <a href="http://members.home.nl/p.a.rombouts/pdnsd/dl.html" target="_blank" rel="external">pdnsd Download Page</a> 下载最新版本 rpm 包，截至今日（2015-12-13）最新版本为 1.2.9：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">wget http://members.home.nl/p.a.rombouts/pdnsd/releases/pdnsd-1.2.9a-par_sl6.x86_64.rpm</div></pre></td></tr></table></figure>
+</li>
+<li><p>安装</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yum localinstall pdnsd-1.2.9a-par_sl6.x86_64.rpm</div></pre></td></tr></table></figure>
+</li>
+<li><p>配置 /etc/pdnsd.conf</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line">global &#123;</div><div class="line">        perm_cache=4096;</div><div class="line">        cache_dir=&quot;/var/cache/pdnsd&quot;;</div><div class="line">        run_as=&quot;pdnsd&quot;;</div><div class="line">        server_ip=0.0.0.0;</div><div class="line">        server_port=5300;</div><div class="line">        status_ctl=on;</div><div class="line">        query_method=tcp_only;</div><div class="line">        min_ttl=1d;</div><div class="line">        max_ttl=1w;</div><div class="line">        timeout=10;</div><div class="line">        neg_domain_pol=on;</div><div class="line">        udpbufsize=1024;</div><div class="line">&#125;</div><div class="line"></div><div class="line">server &#123;</div><div class="line">        label= &quot;googledns&quot;;</div><div class="line">        ip = 8.8.8.8</div><div class="line">        ,8.8.4.4</div><div class="line">        ;</div><div class="line">        timeout=4;</div><div class="line">        uptest=none;</div><div class="line">        purge_cache=off;</div><div class="line">        edns_query=no;</div><div class="line">        exclude = .localdomain;</div><div class="line">&#125;</div><div class="line"></div><div class="line">source &#123;</div><div class="line">        owner=localhost;</div><div class="line">        file=&quot;/etc/hosts&quot;;</div><div class="line">&#125;</div><div class="line"></div><div class="line">rr &#123;</div><div class="line">        name=localhost;</div><div class="line">        reverse=on;</div><div class="line">        a=127.0.0.1;</div><div class="line">        owner=localhost;</div><div class="line">        soa=localhost,root.localhost,42,86400,900,86400,86400;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service pdnsd start</div></pre></td></tr></table></figure>
+</li>
+<li><p>开机启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">chkconfig pdnsd on</div></pre></td></tr></table></figure>
+</li>
+<li><p>配置防火墙，开放 pdnsd 端口 5300</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">/sbin/iptables -l INPUT -p tcp --dport 5300 -j ACCEPT</div><div class="line">/etc/init.d/iptables save</div><div class="line">service iptables restart</div></pre></td></tr></table></figure>
+</li>
+<li><p>本地测试</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">dig @x.x.x.x -p 5300 youtube.com</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="安装-VPN-服务端-pptpd"><a href="#安装-VPN-服务端-pptpd" class="headerlink" title="安装 VPN 服务端  pptpd"></a>安装 VPN 服务端  pptpd</h2><ol>
+<li><p>升级系统</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yum update</div></pre></td></tr></table></figure>
+</li>
+<li><p>安装 ppp 和 iptables</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yum install -y perl ppp iptables</div></pre></td></tr></table></figure>
+</li>
+<li><p>安装 pptpd</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">rpm -Uvh http://poptop.sourceforge.net/yum/stable/rhel6/pptp-release-current.noarch.rpm</div><div class="line">yum install pptpd</div></pre></td></tr></table></figure>
+</li>
+<li><p>配置文件 /etc/ppp/options.pptpd</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cp /etc/ppp/options.pptpd /etc/ppp/options.pptpd.bak</div><div class="line">vi /etc/ppp/options.pptpd</div></pre></td></tr></table></figure>
+<p>添加如下内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">ms-dns 8.8.8.8</div><div class="line">ms-dns 8.8.4.4</div></pre></td></tr></table></figure>
+</li>
+<li><p>置文件 etc/ppp/chap-secrets</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cp /etc/ppp/chap-secrets   /etc/ppp/chap-secrets.bak</div><div class="line">vi /etc/ppp/chap-secrets</div></pre></td></tr></table></figure>
+<p>添加帐号：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">username pptpd password *</div></pre></td></tr></table></figure>
+</li>
+<li><p>配置文件 /etc/pptpd.conf</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cp /etc/pptpd.conf     /etc/pptpd.conf.bak</div><div class="line">vi /etc/pptpd.conf</div></pre></td></tr></table></figure>
+<p>添加如下内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">localip 192.168.0.1</div><div class="line">remoteip 192.168.0.11-30 //表示vpn客户端获得ip的范围</div></pre></td></tr></table></figure>
+<p><strong>注意：pptpd.conf这个配置文件必须保证最后是以空行结尾才行，否则会导致启动pptpd服务时，出现“Starting pptpd:”，一直卡着不动的问题，无法启动服务</strong></p>
+</li>
+<li><p>配置文件 /etc/sysctl.conf</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">net.ipv4.ip_forward = 1</div></pre></td></tr></table></figure>
+<p>生效：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sysctl -p</div></pre></td></tr></table></figure>
+</li>
+<li><p>配置防火墙</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">iptables -t nat -A POSTROUTING -o venet0 -j MASQUERADE</div><div class="line">iptables -A FORWARD -p tcp --syn -s 192.168.0.0/24 -j TCPMSS --set-mss 1356</div><div class="line">/etc/init.d/iptables save</div><div class="line">service iptables restart</div></pre></td></tr></table></figure>
+</li>
+<li><p>开放端口 1723, 47</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">iptables -A INPUT -p tcp --dport 1723 -j ACCEPT</div><div class="line">iptables -A INPUT -p 47 -j ACCEPT</div><div class="line">/etc/init.d/iptables save</div><div class="line">service iptables restart</div></pre></td></tr></table></figure>
+</li>
+<li><p>启动与开机启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">service pptpd restart</div><div class="line">chkconfig pptpd on</div></pre></td></tr></table></figure></li>
+</ol>
+
+</section>
+<section class="meta">
+  <span class="author">
+    <a href="/about" title="Niko.G">Niko.G</a>
+  </span>
+  <span class="time">
+    /
+    <time datetime="2015-11-23T14:43:25.000Z" itemprop="datePublished">2015-11-23</time>
+  </span>
+  <br>
+  <span class="license">
+    Published under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">(CC) BY-NC-SA</a>
+  </span>
+  
+    <span class="categories">
+      in categories 
+       
+        <a data-src="/categories/技术文摘/" href="#技术文摘" title="技术文摘">技术文摘</a>
+      
+    </span>
+  
+  
+    <span class="tags">
+      tagged with
+       
+        <a data-src="/tags/centos/" href="#centos" title="centos">centos</a>
+       
+        <a data-src="/tags/shadowsocks/" href="#shadowsocks" title="shadowsocks">shadowsocks</a>
+      
+    </span>
+  
+</section>
+<section class="google_adsense">
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- www.v2code.com -->
+    <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-1813429521156142"
+        data-ad-slot="1240867488"
+        data-ad-format="auto"></ins>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</section>
+<section class="comment">
+<div id="disqus_thread"></div>
+<script>
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = 'https://www.v2code.com/2015/11/gfw-server-tips.html';  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = '/2015/11/gfw-server-tips.html'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://nikos-notes.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+        </article>
+
+        
+          
+            <script src="/js/jquery-1.7.1.min.js"></script>
+          
+            <script src="/js/main.js"></script>
+          
+        
+      </div>      
+  </div>
+
+<div id="message"><a href="#top">Scroll to top</a></div>
+<script type="text/javascript">
+$(function () {
+
+    /* set variables locally for increased performance */
+    var scroll_timer;
+    var displayed = false;
+    var $message = $('#message a');
+    var $window = $(window);
+    var top = $(document.body).children(0).position().top;
+
+    /* react to scroll event on window */
+    $window.scroll(function () {
+        window.clearTimeout(scroll_timer);
+        scroll_timer = window.setTimeout(function () {
+            if($window.scrollTop() <= top + 800)
+            {
+                displayed = false;
+                $message.fadeOut(1000);
+            }
+            else if(displayed == false)
+            {
+                displayed = true;
+                $message.stop(true, true).show().click(function () { $message.fadeOut(1000); });
+            }
+        }, 100);
+    });
+});
+</script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-96913368-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+</body>
+</html>

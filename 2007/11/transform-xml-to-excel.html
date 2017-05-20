@@ -1,0 +1,169 @@
+
+
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <title>利用XSLT转XML为EXCEL的换行问题 | Niko&#39;s Notes</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+  
+  <meta name="author" content="Niko.G">
+  
+    
+  
+  <link rel="icon" href="/favicon.ico">
+  
+  
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+  
+</head>
+<body>
+  <div id="container">
+      <div id="main" role="main">
+        <header>
+          <h1>利用XSLT转XML为EXCEL的换行问题</h1>
+        </header>
+
+        <nav>
+          
+            <span><a title="home page" class="" href="/">Home</a></span>
+          
+            <span><a title="home page" class="" href="/about">About</a></span>
+          
+            <span><a title="home page" class="" href="/categories">Categories</a></span>
+          
+            <span><a title="home page" class="" href="/tags">Tags</a></span>
+          
+        </nav>
+
+        <article class="content">
+            <section class="post">
+  <h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>最近在公司做报表，有一种方法是利用ORACLE的存储过程返回XML，然后利用XSLT转换为EXCEL。</p>
+<p>以下是某个存储过程返回的XML:<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt; </div><div class="line"><span class="tag">&lt;<span class="name">ROOT</span>&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">container_detail</span>&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">ROW</span> <span class="attr">CONTAINER_NO</span>=<span class="string">"DFSU7666883 "</span>/&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">ROW</span> <span class="attr">CONTAINER_NO</span>=<span class="string">"DFSU7666836 "</span>/&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">ROW</span> <span class="attr">CONTAINER_NO</span>=<span class="string">"DFSU7666800 "</span>/&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">ROW</span> <span class="attr">CONTAINER_NO</span>=<span class="string">"DFSU7666878 "</span>/&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">ROW</span> <span class="attr">CONTAINER_NO</span>=<span class="string">"DFSU7666815 "</span>/&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">ROW</span> <span class="attr">CONTAINER_NO</span>=<span class="string">"DFSU7666857 "</span>/&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">ROW</span> <span class="attr">CONTAINER_NO</span>=<span class="string">"DFSU7666899 "</span>/&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">ROW</span> <span class="attr">CONTAINER_NO</span>=<span class="string">"DFSU7666820 "</span>/&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">ROW</span> <span class="attr">CONTAINER_NO</span>=<span class="string">"DFSU7666841 "</span>/&gt;</span> </div><div class="line">    <span class="tag">&lt;<span class="name">ROW</span> <span class="attr">CONTAINER_NO</span>=<span class="string">"DFSU7666862 "</span>/&gt;</span> </div><div class="line">  <span class="tag">&lt;/<span class="name">container_detail</span>&gt;</span> </div><div class="line"><span class="tag">&lt;/<span class="name">ROOT</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>现要求：将CONTAINER_NO取出，转为EXCEL时要每四列就换行，如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Booking Confirmation Unit Details    </div><div class="line">DFSU7666883  DFSU7666836  DFSU7666800  DFSU7666878  </div><div class="line">DFSU7666815  DFSU7666857  DFSU7666899  DFSU7666820  </div><div class="line">DFSU7666841  DFSU7666862</div></pre></td></tr></table></figure></p>
+<p>在利用XSLT处理的时候遇到难题，半天解决不了。求助PM，一会儿就解决了，部分代码如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">&lt;xsl:for-each select=&quot;//ROW&quot;&gt; </div><div class="line">  &lt;xsl:if test=&quot;position() mod 4 =1&quot;&gt; </div><div class="line">      &lt;Row&gt; </div><div class="line">    &lt;Cell ss:StyleID=&quot;s22&quot;&gt; </div><div class="line">        &lt;Data ss:Type=&quot;String&quot;&gt; </div><div class="line">      &lt;xsl:value-of select=&quot;@CONTAINER_NO&quot;/&gt; </div><div class="line">        &lt;/Data&gt; </div><div class="line">    &lt;/Cell&gt; </div><div class="line">    &lt;xsl:for-each select=&quot;following::*[position()&lt;=3]&quot;&gt; </div><div class="line">        &lt;Cell ss:StyleID=&quot;s22&quot;&gt; </div><div class="line">      &lt;Data ss:Type=&quot;String&quot;&gt; </div><div class="line">          &lt;xsl:value-of select=&quot;@CONTAINER_NO&quot;/&gt; </div><div class="line">      &lt;/Data&gt; </div><div class="line">        &lt;/Cell&gt; </div><div class="line">    &lt;/xsl:for-each&gt; </div><div class="line">      &lt;/Row&gt; </div><div class="line">  &lt;/xsl:if&gt; </div><div class="line">&lt;/xsl:for-each&gt;</div></pre></td></tr></table></figure></p>
+
+</section>
+<section class="meta">
+  <span class="author">
+    <a href="/about" title="Niko.G">Niko.G</a>
+  </span>
+  <span class="time">
+    /
+    <time datetime="2007-11-30T20:48:30.000Z" itemprop="datePublished">2007-11-30</time>
+  </span>
+  <br>
+  <span class="license">
+    Published under <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">(CC) BY-NC-SA</a>
+  </span>
+  
+    <span class="categories">
+      in categories 
+       
+        <a data-src="/categories/技术文摘/" href="#技术文摘" title="技术文摘">技术文摘</a>
+      
+    </span>
+  
+  
+    <span class="tags">
+      tagged with
+       
+        <a data-src="/tags/XSLT/" href="#XSLT" title="XSLT">XSLT</a>
+       
+        <a data-src="/tags/XML/" href="#XML" title="XML">XML</a>
+       
+        <a data-src="/tags/Excel/" href="#Excel" title="Excel">Excel</a>
+      
+    </span>
+  
+</section>
+<section class="google_adsense">
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <!-- www.v2code.com -->
+    <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-1813429521156142"
+        data-ad-slot="1240867488"
+        data-ad-format="auto"></ins>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</section>
+<section class="comment">
+<div id="disqus_thread"></div>
+<script>
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = 'https://www.v2code.com/2007/11/transform-xml-to-excel.html';  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = '/2007/11/transform-xml-to-excel.html'; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://nikos-notes.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+        </article>
+
+        
+          
+            <script src="/js/jquery-1.7.1.min.js"></script>
+          
+            <script src="/js/main.js"></script>
+          
+        
+      </div>      
+  </div>
+
+<div id="message"><a href="#top">Scroll to top</a></div>
+<script type="text/javascript">
+$(function () {
+
+    /* set variables locally for increased performance */
+    var scroll_timer;
+    var displayed = false;
+    var $message = $('#message a');
+    var $window = $(window);
+    var top = $(document.body).children(0).position().top;
+
+    /* react to scroll event on window */
+    $window.scroll(function () {
+        window.clearTimeout(scroll_timer);
+        scroll_timer = window.setTimeout(function () {
+            if($window.scrollTop() <= top + 800)
+            {
+                displayed = false;
+                $message.fadeOut(1000);
+            }
+            else if(displayed == false)
+            {
+                displayed = true;
+                $message.stop(true, true).show().click(function () { $message.fadeOut(1000); });
+            }
+        }, 100);
+    });
+});
+</script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-96913368-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+</body>
+</html>
